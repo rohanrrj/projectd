@@ -1,0 +1,17 @@
+{
+	"name": "LS_SINK_AZURESQL",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"annotations": [],
+		"type": "AzureSqlDatabase",
+		"typeProperties": {
+			"server": "avdsqldbserver.database.windows.net",
+			"database": "my_db",
+			"encrypt": "mandatory",
+			"trustServerCertificate": false,
+			"authenticationType": "SQL",
+			"userName": "avd",
+			"encryptedCredential": "ew0KICAiVmVyc2lvbiI6ICIyMDE3LTExLTMwIiwNCiAgIlByb3RlY3Rpb25Nb2RlIjogIktleSIsDQogICJTZWNyZXRDb250ZW50VHlwZSI6ICJQbGFpbnRleHQiLA0KICAiQ3JlZGVudGlhbElkIjogIkRBVEFGQUNUT1JZQDQ0MDBBRkNDLTcyM0ItNDE4My1BQ0UyLUU0OEZGNjhBREFEQl83YzMzYzdmNy1hODNiLTQxYjktYWI4YS1hNmMwZjY5ZTgyMjMiDQp9"
+		}
+	}
+}

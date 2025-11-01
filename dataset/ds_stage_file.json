@@ -1,0 +1,45 @@
+{
+	"name": "ds_stage_file",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ls_adls",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"ds_par_StageContainer": {
+				"type": "string"
+			},
+			"ds_par_StageFolder": {
+				"type": "string"
+			},
+			"ds_par_StageFile": {
+				"type": "string"
+			}
+		},
+		"folder": {
+			"name": "PROJECT 2"
+		},
+		"annotations": [],
+		"type": "Parquet",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"fileName": {
+					"value": "@dataset().ds_par_StageFile",
+					"type": "Expression"
+				},
+				"folderPath": {
+					"value": "@dataset().ds_par_StageFolder",
+					"type": "Expression"
+				},
+				"fileSystem": {
+					"value": "@dataset().ds_par_StageContainer",
+					"type": "Expression"
+				}
+			},
+			"compressionCodec": "snappy"
+		},
+		"schema": []
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

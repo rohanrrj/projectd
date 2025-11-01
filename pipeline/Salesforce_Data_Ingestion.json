@@ -1,0 +1,27 @@
+{
+	"name": "Salesforce_Data_Ingestion",
+	"properties": {
+		"activities": [
+			{
+				"name": "Set variable1",
+				"type": "SetVariable",
+				"dependsOn": [],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "abc",
+					"value": "Aksshaye"
+				}
+			}
+		],
+		"variables": {
+			"abc": {
+				"type": "String"
+			}
+		},
+		"annotations": []
+	}
+}

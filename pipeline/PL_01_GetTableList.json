@@ -1,0 +1,151 @@
+{
+	"name": "PL_01_GetTableList",
+	"properties": {
+		"activities": [
+			{
+				"name": "Lookup Table Mapping",
+				"type": "Lookup",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "AzureSqlSource",
+						"sqlReaderStoredProcedureName": "[METADATA].[GET_TABLE_MAPPING]",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "ds_sql_oracle_db",
+						"type": "DatasetReference",
+						"parameters": {
+							"targetTable": "Test Value"
+						}
+					},
+					"firstRowOnly": false
+				}
+			},
+			{
+				"name": "Iterate Table List",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "Lookup Table Mapping",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('Lookup Table Mapping').output.value",
+						"type": "Expression"
+					},
+					"isSequential": true,
+					"activities": [
+						{
+							"name": "Execute LoadStage Pipeline",
+							"type": "ExecutePipeline",
+							"dependsOn": [],
+							"policy": {
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"pipeline": {
+									"referenceName": "PL_02_LoadStage",
+									"type": "PipelineReference"
+								},
+								"waitOnCompletion": true,
+								"parameters": {
+									"pl_par_SourceSchema": {
+										"value": "@item().SOURCE_SCHEMA",
+										"type": "Expression"
+									},
+									"pl_par_SourceTable": {
+										"value": "@item().SOURCE_TABLE",
+										"type": "Expression"
+									},
+									"pl_par_StageContainer": {
+										"value": "@item().STAGE_CONTAINER",
+										"type": "Expression"
+									},
+									"pl_par_StageFolder": {
+										"value": "@item().STAGE_FOLDER_PATH",
+										"type": "Expression"
+									},
+									"pl_par_StageFile": {
+										"value": "@item().STAGE_FILE_NAME",
+										"type": "Expression"
+									}
+								}
+							}
+						},
+						{
+							"name": "Execute LoadDatabase",
+							"type": "ExecutePipeline",
+							"dependsOn": [
+								{
+									"activity": "Execute LoadStage Pipeline",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"pipeline": {
+									"referenceName": "PL_03_LoadDatabase",
+									"type": "PipelineReference"
+								},
+								"waitOnCompletion": true,
+								"parameters": {
+									"pl_par_SourceTable": {
+										"value": "@item().SOURCE_TABLE",
+										"type": "Expression"
+									},
+									"pl_par_StageContainer": {
+										"value": "@item().STAGE_CONTAINER",
+										"type": "Expression"
+									},
+									"pl_par_StageFolder": {
+										"value": "@item().STAGE_FOLDER_PATH",
+										"type": "Expression"
+									},
+									"pl_par_StageFile": {
+										"value": "@item().STAGE_FILE_NAME",
+										"type": "Expression"
+									},
+									"pl_par_TargetSchema": {
+										"value": "@item().TARGET_SCHEMA",
+										"type": "Expression"
+									},
+									"pl_par_TargetTable": {
+										"value": "@item().TARGET_TABLE",
+										"type": "Expression"
+									}
+								}
+							}
+						}
+					]
+				}
+			}
+		],
+		"folder": {
+			"name": "PROJECT 2"
+		},
+		"annotations": [],
+		"lastPublishTime": "2025-10-12T15:34:03Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

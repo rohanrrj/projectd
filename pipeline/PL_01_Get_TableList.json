@@ -1,0 +1,158 @@
+{
+	"name": "PL_01_Get_TableList",
+	"properties": {
+		"activities": [
+			{
+				"name": "Lookup Table Mapping",
+				"type": "Lookup",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "AzureSqlSource",
+						"sqlReaderStoredProcedureName": "[METADATA].[GET_TABLE_MAPPING]",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "ds_lookup_table_mapping_sp",
+						"type": "DatasetReference"
+					},
+					"firstRowOnly": false
+				}
+			},
+			{
+				"name": "Iterate TableList",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "Lookup Table Mapping",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('Lookup Table Mapping').output.value",
+						"type": "Expression"
+					},
+					"isSequential": true,
+					"activities": [
+						{
+							"name": "Execute Load Stage Data",
+							"type": "ExecutePipeline",
+							"state": "Inactive",
+							"onInactiveMarkAs": "Succeeded",
+							"dependsOn": [],
+							"policy": {
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"pipeline": {
+									"referenceName": "PL_02_Load_Stage",
+									"type": "PipelineReference"
+								},
+								"waitOnCompletion": true,
+								"parameters": {
+									"pl_par_StageFile": {
+										"value": "@item().STAGE_FILE_NAME",
+										"type": "Expression"
+									},
+									"pl_par_StageFolder": {
+										"value": "@item().STAGE_FOLDER_PATH",
+										"type": "Expression"
+									},
+									"pl_par_StageContainer": {
+										"value": "@item().STAGE_CONTAINER",
+										"type": "Expression"
+									},
+									"pl_par_TargetTable": {
+										"value": "@item().TARGET_SCHEMA",
+										"type": "Expression"
+									},
+									"pl_par_TargetSchema": {
+										"value": "@item().TARGET_TABLE",
+										"type": "Expression"
+									},
+									"pl_par_SourceSchema": {
+										"value": "@item().SOURCE_SCHEMA",
+										"type": "Expression"
+									},
+									"pl_par_SourceTable": {
+										"value": "@item().SOURCE_TABLE",
+										"type": "Expression"
+									}
+								}
+							}
+						},
+						{
+							"name": "Execute Load Database Data",
+							"type": "ExecutePipeline",
+							"dependsOn": [
+								{
+									"activity": "Execute Load Stage Data",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"pipeline": {
+									"referenceName": "PL_03_Load_Database",
+									"type": "PipelineReference"
+								},
+								"waitOnCompletion": true,
+								"parameters": {
+									"pl_par_SourceTable": {
+										"value": "@item().SOURCE_TABLE",
+										"type": "Expression"
+									},
+									"pl_par_StageFolder": {
+										"value": "@item().STAGE_FOLDER_PATH",
+										"type": "Expression"
+									},
+									"pl_par_StageFile": {
+										"value": "@item().STAGE_FILE_NAME",
+										"type": "Expression"
+									},
+									"pl_par_StageContainer": {
+										"value": "@item().STAGE_CONTAINER",
+										"type": "Expression"
+									},
+									"pl_par_TargetTable": {
+										"value": "@item().TARGET_TABLE",
+										"type": "Expression"
+									},
+									"pl_par_TargetSchema": {
+										"value": "@item().TARGET_SCHEMA",
+										"type": "Expression"
+									}
+								}
+							}
+						}
+					]
+				}
+			}
+		],
+		"folder": {
+			"name": "Project"
+		},
+		"annotations": [],
+		"lastPublishTime": "2025-10-12T03:42:18Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

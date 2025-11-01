@@ -1,0 +1,188 @@
+{
+	"name": "PL_03_Load_Database",
+	"properties": {
+		"activities": [
+			{
+				"name": "Lookup Column Mapping",
+				"type": "Lookup",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "AzureSqlSource",
+						"sqlReaderStoredProcedureName": "[configuration].[GET_COLUMN_MAPPING]",
+						"storedProcedureParameters": {
+							"SourceTableName": {
+								"type": "String",
+								"value": {
+									"value": "@pipeline().parameters.pl_par_SourceTable",
+									"type": "Expression"
+								}
+							}
+						},
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "ds_azure_sql_db",
+						"type": "DatasetReference",
+						"parameters": {
+							"targetTable": "Default Value"
+						}
+					},
+					"firstRowOnly": false
+				}
+			},
+			{
+				"name": "set mapping string",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "Lookup Column Mapping",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "pl_var_mapping_string",
+					"value": {
+						"value": "@replace(replace(activity('Lookup Column Mapping').output.value[0].json_output,'\\\\/','/'),'\\\"','\"')",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "Copy Data To Database",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "set mapping string",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "ParquetSource",
+						"storeSettings": {
+							"type": "AzureBlobFSReadSettings",
+							"recursive": true,
+							"wildcardFolderPath": {
+								"value": "@pipeline().parameters.pl_par_StageFolder",
+								"type": "Expression"
+							},
+							"wildcardFileName": {
+								"value": "@concat(pipeline().parameters.pl_par_StageFile,'*')",
+								"type": "Expression"
+							},
+							"enablePartitionDiscovery": false
+						},
+						"formatSettings": {
+							"type": "ParquetReadSettings"
+						}
+					},
+					"sink": {
+						"type": "AzureSqlSink",
+						"writeBehavior": "insert",
+						"sqlWriterUseTableLock": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "ds_parquet",
+						"type": "DatasetReference",
+						"parameters": {
+							"ds_par_container": {
+								"value": "@pipeline().parameters.pl_par_StageContainer",
+								"type": "Expression"
+							},
+							"ds_par_folder": {
+								"value": "@pipeline().parameters.pl_par_StageFolder",
+								"type": "Expression"
+							},
+							"ds_par_file": "default"
+						}
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "new_db_sql_server",
+						"type": "DatasetReference",
+						"parameters": {
+							"ds_par_TargetSchema": {
+								"value": "@pipeline().parameters.pl_par_TargetSchema",
+								"type": "Expression"
+							},
+							"ds_par_TargetTable": {
+								"value": "@pipeline().parameters.pl_par_TargetTable",
+								"type": "Expression"
+							}
+						}
+					}
+				]
+			}
+		],
+		"parameters": {
+			"pl_par_SourceTable": {
+				"type": "string"
+			},
+			"pl_par_StageFolder": {
+				"type": "string"
+			},
+			"pl_par_StageFile": {
+				"type": "string"
+			},
+			"pl_par_StageContainer": {
+				"type": "string"
+			},
+			"pl_par_TargetTable": {
+				"type": "string"
+			},
+			"pl_par_TargetSchema": {
+				"type": "string"
+			}
+		},
+		"variables": {
+			"pl_var_mapping_string": {
+				"type": "String"
+			}
+		},
+		"folder": {
+			"name": "Project"
+		},
+		"annotations": [],
+		"lastPublishTime": "2025-10-12T03:42:18Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

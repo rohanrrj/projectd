@@ -1,0 +1,16 @@
+{
+	"name": "ds_lookup_table_mapping_sp",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ls_oraclecmsdb",
+			"type": "LinkedServiceReference"
+		},
+		"folder": {
+			"name": "CMS"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": []
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

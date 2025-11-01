@@ -1,0 +1,34 @@
+{
+	"name": "new_db_sql_server",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "sql_server_conn",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"ds_par_TargetSchema": {
+				"type": "string"
+			},
+			"ds_par_TargetTable": {
+				"type": "string"
+			}
+		},
+		"folder": {
+			"name": "CMS"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [],
+		"typeProperties": {
+			"schema": {
+				"value": "@dataset().ds_par_TargetSchema",
+				"type": "Expression"
+			},
+			"table": {
+				"value": "@dataset().ds_par_TargetTable",
+				"type": "Expression"
+			}
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

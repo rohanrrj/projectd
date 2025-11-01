@@ -1,0 +1,35 @@
+{
+	"name": "ds_stage_source_devlopment_schema",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ls_oraclecmsdb",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"ds_par_SourceSchema": {
+				"type": "string"
+			},
+			"ds_par_SourceTable": {
+				"type": "string",
+				"defaultValue": "Default Value"
+			}
+		},
+		"folder": {
+			"name": "PROJECT 2"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [],
+		"typeProperties": {
+			"schema": {
+				"value": "@dataset().ds_par_SourceSchema",
+				"type": "Expression"
+			},
+			"table": {
+				"value": "@dataset().ds_par_SourceTable",
+				"type": "Expression"
+			}
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

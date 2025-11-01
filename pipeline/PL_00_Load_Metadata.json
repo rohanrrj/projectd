@@ -1,0 +1,108 @@
+{
+	"name": "PL_00_Load_Metadata",
+	"properties": {
+		"activities": [
+			{
+				"name": "Iterate Sheet Names",
+				"type": "ForEach",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@variables('var_sheet_mapping')",
+						"type": "Expression"
+					},
+					"isSequential": true,
+					"activities": [
+						{
+							"name": "Copy data1",
+							"type": "Copy",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "ExcelSource",
+									"storeSettings": {
+										"type": "AzureBlobFSReadSettings",
+										"recursive": true,
+										"enablePartitionDiscovery": false
+									}
+								},
+								"sink": {
+									"type": "AzureSqlSink",
+									"preCopyScript": {
+										"value": "DELETE FROM CONFIGURATION.@{item().TargetTable}",
+										"type": "Expression"
+									},
+									"writeBehavior": "insert",
+									"sqlWriterUseTableLock": false
+								},
+								"enableStaging": false,
+								"translator": {
+									"type": "TabularTranslator",
+									"typeConversion": true,
+									"typeConversionSettings": {
+										"allowDataTruncation": true,
+										"treatBooleanAsNumber": false
+									}
+								}
+							},
+							"inputs": [
+								{
+									"referenceName": "ds_metadata_excel",
+									"type": "DatasetReference",
+									"parameters": {
+										"sheetName": {
+											"value": "@item().SheetName",
+											"type": "Expression"
+										}
+									}
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "ds_sql_oracle_db",
+									"type": "DatasetReference",
+									"parameters": {
+										"targetTable": {
+											"value": "@item().TargetTable",
+											"type": "Expression"
+										}
+									}
+								}
+							]
+						}
+					]
+				}
+			}
+		],
+		"variables": {
+			"var_sheet_mapping": {
+				"type": "Array",
+				"defaultValue": [
+					{
+						"SheetName": "TABLE_MAPPING",
+						"TargetTable": "TABLE_MAPPING"
+					},
+					{
+						"SheetName": "COLUMN_MAPPING",
+						"TargetTable": "COLUMN_MAPPING"
+					}
+				]
+			}
+		},
+		"folder": {
+			"name": "Project"
+		},
+		"annotations": [],
+		"lastPublishTime": "2025-10-11T13:44:57Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

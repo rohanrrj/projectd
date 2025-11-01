@@ -1,0 +1,155 @@
+{
+	"name": "PL_02_LoadStage",
+	"properties": {
+		"activities": [
+			{
+				"name": "Delete Stage File",
+				"type": "Delete",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataset": {
+						"referenceName": "ds_stage_file",
+						"type": "DatasetReference",
+						"parameters": {
+							"ds_par_StageContainer": {
+								"value": "@pipeline().parameters.pl_par_StageContainer",
+								"type": "Expression"
+							},
+							"ds_par_StageFolder": {
+								"value": "@pipeline().parameters.pl_par_StageFolder",
+								"type": "Expression"
+							},
+							"ds_par_StageFile": "Test Value"
+						}
+					},
+					"enableLogging": false,
+					"storeSettings": {
+						"type": "AzureBlobFSReadSettings",
+						"recursive": true,
+						"wildcardFileName": {
+							"value": "@concat(pipeline().parameters.pl_par_StageFile,'*')",
+							"type": "Expression"
+						},
+						"enablePartitionDiscovery": false
+					}
+				}
+			},
+			{
+				"name": "Copy Data To Stage",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "Delete Stage File",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "AzureSqlSource",
+						"sqlReaderQuery": {
+							"value": "SELECT * FROM @{pipeline().parameters.pl_par_SourceSchema}.@{pipeline().parameters.pl_par_SourceTable}",
+							"type": "Expression"
+						},
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "ParquetSink",
+						"storeSettings": {
+							"type": "AzureBlobFSWriteSettings"
+						},
+						"formatSettings": {
+							"type": "ParquetWriteSettings"
+						}
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "ds_stage_source_devlopment_schema",
+						"type": "DatasetReference",
+						"parameters": {
+							"ds_par_SourceSchema": {
+								"value": "@pipeline().parameters.pl_par_SourceSchema",
+								"type": "Expression"
+							},
+							"ds_par_SourceTable": {
+								"value": "@pipeline().parameters.pl_par_SourceTable",
+								"type": "Expression"
+							}
+						}
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ds_stage_file",
+						"type": "DatasetReference",
+						"parameters": {
+							"ds_par_StageContainer": {
+								"value": "@pipeline().parameters.pl_par_StageContainer",
+								"type": "Expression"
+							},
+							"ds_par_StageFolder": {
+								"value": "@pipeline().parameters.pl_par_StageFolder",
+								"type": "Expression"
+							},
+							"ds_par_StageFile": {
+								"value": "@pipeline().parameters.pl_par_StageFile",
+								"type": "Expression"
+							}
+						}
+					}
+				]
+			}
+		],
+		"parameters": {
+			"pl_par_SourceSchema": {
+				"type": "string"
+			},
+			"pl_par_SourceTable": {
+				"type": "string"
+			},
+			"pl_par_StageContainer": {
+				"type": "string"
+			},
+			"pl_par_StageFolder": {
+				"type": "string"
+			},
+			"pl_par_StageFile": {
+				"type": "string"
+			}
+		},
+		"folder": {
+			"name": "PROJECT 2"
+		},
+		"annotations": [],
+		"lastPublishTime": "2025-10-11T15:31:45Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

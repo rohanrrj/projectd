@@ -1,0 +1,108 @@
+{
+	"name": "PL_00_LoadMetadata",
+	"properties": {
+		"activities": [
+			{
+				"name": "Iterate Sheet Names",
+				"type": "ForEach",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@variables('var_sheet_names')",
+						"type": "Expression"
+					},
+					"isSequential": true,
+					"activities": [
+						{
+							"name": "Copy Metadata To Tables",
+							"type": "Copy",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "ExcelSource",
+									"storeSettings": {
+										"type": "AzureBlobFSReadSettings",
+										"recursive": true,
+										"enablePartitionDiscovery": false
+									}
+								},
+								"sink": {
+									"type": "AzureSqlSink",
+									"preCopyScript": {
+										"value": "DELETE FROM METADATA.@{item().TargetTable}",
+										"type": "Expression"
+									},
+									"writeBehavior": "insert",
+									"sqlWriterUseTableLock": false
+								},
+								"enableStaging": false,
+								"translator": {
+									"type": "TabularTranslator",
+									"typeConversion": true,
+									"typeConversionSettings": {
+										"allowDataTruncation": true,
+										"treatBooleanAsNumber": false
+									}
+								}
+							},
+							"inputs": [
+								{
+									"referenceName": "ds_metadata_xlsx",
+									"type": "DatasetReference",
+									"parameters": {
+										"sheetName": {
+											"value": "@item().SheetName",
+											"type": "Expression"
+										}
+									}
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "ds_azure_sql_db",
+									"type": "DatasetReference",
+									"parameters": {
+										"targetTable": {
+											"value": "@item().TargetTable",
+											"type": "Expression"
+										}
+									}
+								}
+							]
+						}
+					]
+				}
+			}
+		],
+		"variables": {
+			"var_sheet_names": {
+				"type": "Array",
+				"defaultValue": [
+					{
+						"SheetName": "TABLE_MAPPING",
+						"TargetTable": "TABLE_MAPPING"
+					},
+					{
+						"SheetName": "COLUMN_MAPPING",
+						"TargetTable": "COLUMN_MAPPING"
+					}
+				]
+			}
+		},
+		"folder": {
+			"name": "PROJECT 2"
+		},
+		"annotations": [],
+		"lastPublishTime": "2025-10-10T16:01:20Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}
