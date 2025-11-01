@@ -1,0 +1,1442 @@
+{
+	"$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"factoryName": {
+			"type": "string",
+			"metadata": "Data Factory name",
+			"defaultValue": "madaraUchiha"
+		}
+	},
+	"variables": {
+		"factoryId": "[concat('Microsoft.DataFactory/factories/', parameters('factoryName'))]"
+	},
+	"resources": [
+		{
+			"name": "[concat(parameters('factoryName'), '/PL_00_LoadMetadata')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Iterate Sheet Names",
+						"type": "ForEach",
+						"dependsOn": [],
+						"userProperties": [],
+						"typeProperties": {
+							"items": {
+								"value": "@variables('var_sheet_names')",
+								"type": "Expression"
+							},
+							"isSequential": true,
+							"activities": [
+								{
+									"name": "Copy Metadata To Tables",
+									"type": "Copy",
+									"dependsOn": [],
+									"policy": {
+										"timeout": "0.12:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"source": {
+											"type": "ExcelSource",
+											"storeSettings": {
+												"type": "AzureBlobFSReadSettings",
+												"recursive": true,
+												"enablePartitionDiscovery": false
+											}
+										},
+										"sink": {
+											"type": "AzureSqlSink",
+											"preCopyScript": {
+												"value": "DELETE FROM METADATA.@{item().TargetTable}",
+												"type": "Expression"
+											},
+											"writeBehavior": "insert",
+											"sqlWriterUseTableLock": false
+										},
+										"enableStaging": false,
+										"translator": {
+											"type": "TabularTranslator",
+											"typeConversion": true,
+											"typeConversionSettings": {
+												"allowDataTruncation": true,
+												"treatBooleanAsNumber": false
+											}
+										}
+									},
+									"inputs": [
+										{
+											"referenceName": "ds_metadata_xlsx",
+											"type": "DatasetReference",
+											"parameters": {
+												"sheetName": {
+													"value": "@item().SheetName",
+													"type": "Expression"
+												}
+											}
+										}
+									],
+									"outputs": [
+										{
+											"referenceName": "ds_azure_sql_db",
+											"type": "DatasetReference",
+											"parameters": {
+												"targetTable": {
+													"value": "@item().TargetTable",
+													"type": "Expression"
+												}
+											}
+										}
+									]
+								}
+							]
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"variables": {
+					"var_sheet_names": {
+						"type": "Array",
+						"defaultValue": [
+							{
+								"SheetName": "TABLE_MAPPING",
+								"TargetTable": "TABLE_MAPPING"
+							},
+							{
+								"SheetName": "COLUMN_MAPPING",
+								"TargetTable": "COLUMN_MAPPING"
+							}
+						]
+					}
+				},
+				"folder": {
+					"name": "PROJECT 2"
+				},
+				"annotations": [],
+				"lastPublishTime": "2025-10-10T16:01:20Z"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/PL_00_Load_Metadata')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Iterate Sheet Names",
+						"type": "ForEach",
+						"dependsOn": [],
+						"userProperties": [],
+						"typeProperties": {
+							"items": {
+								"value": "@variables('var_sheet_mapping')",
+								"type": "Expression"
+							},
+							"isSequential": true,
+							"activities": [
+								{
+									"name": "Copy data1",
+									"type": "Copy",
+									"dependsOn": [],
+									"policy": {
+										"timeout": "0.12:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"source": {
+											"type": "ExcelSource",
+											"storeSettings": {
+												"type": "AzureBlobFSReadSettings",
+												"recursive": true,
+												"enablePartitionDiscovery": false
+											}
+										},
+										"sink": {
+											"type": "AzureSqlSink",
+											"preCopyScript": {
+												"value": "DELETE FROM CONFIGURATION.@{item().TargetTable}",
+												"type": "Expression"
+											},
+											"writeBehavior": "insert",
+											"sqlWriterUseTableLock": false
+										},
+										"enableStaging": false,
+										"translator": {
+											"type": "TabularTranslator",
+											"typeConversion": true,
+											"typeConversionSettings": {
+												"allowDataTruncation": true,
+												"treatBooleanAsNumber": false
+											}
+										}
+									},
+									"inputs": [
+										{
+											"referenceName": "ds_metadata_excel",
+											"type": "DatasetReference",
+											"parameters": {
+												"sheetName": {
+													"value": "@item().SheetName",
+													"type": "Expression"
+												}
+											}
+										}
+									],
+									"outputs": [
+										{
+											"referenceName": "ds_sql_oracle_db",
+											"type": "DatasetReference",
+											"parameters": {
+												"targetTable": {
+													"value": "@item().TargetTable",
+													"type": "Expression"
+												}
+											}
+										}
+									]
+								}
+							]
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"variables": {
+					"var_sheet_mapping": {
+						"type": "Array",
+						"defaultValue": [
+							{
+								"SheetName": "TABLE_MAPPING",
+								"TargetTable": "TABLE_MAPPING"
+							},
+							{
+								"SheetName": "COLUMN_MAPPING",
+								"TargetTable": "COLUMN_MAPPING"
+							}
+						]
+					}
+				},
+				"folder": {
+					"name": "Project"
+				},
+				"annotations": [],
+				"lastPublishTime": "2025-10-11T13:44:57Z"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/PL_00_METADATA')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "itrate_sheetName",
+						"type": "ForEach",
+						"dependsOn": [],
+						"userProperties": [],
+						"typeProperties": {
+							"items": {
+								"value": "@variables('var_sheet_name')",
+								"type": "Expression"
+							},
+							"isSequential": true,
+							"activities": [
+								{
+									"name": "Copy_metadataToTables",
+									"type": "Copy",
+									"dependsOn": [],
+									"policy": {
+										"timeout": "0.12:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"source": {
+											"type": "ExcelSource",
+											"storeSettings": {
+												"type": "AzureBlobFSReadSettings",
+												"recursive": true,
+												"enablePartitionDiscovery": false
+											}
+										},
+										"sink": {
+											"type": "AzureSqlSink",
+											"preCopyScript": {
+												"value": "DELETE FROM [METADATA].@{item().TargetTable}",
+												"type": "Expression"
+											},
+											"writeBehavior": "insert",
+											"sqlWriterUseTableLock": false
+										},
+										"enableStaging": false,
+										"translator": {
+											"type": "TabularTranslator",
+											"typeConversion": true,
+											"typeConversionSettings": {
+												"allowDataTruncation": true,
+												"treatBooleanAsNumber": false
+											}
+										}
+									},
+									"inputs": [
+										{
+											"referenceName": "ds_metadata_excel",
+											"type": "DatasetReference",
+											"parameters": {
+												"sheetName": {
+													"value": "@item().SheetName",
+													"type": "Expression"
+												}
+											}
+										}
+									],
+									"outputs": [
+										{
+											"referenceName": "AzureSqlTable1",
+											"type": "DatasetReference",
+											"parameters": {
+												"targetTable": {
+													"value": "@item().TargetTable",
+													"type": "Expression"
+												}
+											}
+										}
+									]
+								}
+							]
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"variables": {
+					"var_sheet_name": {
+						"type": "Array",
+						"defaultValue": [
+							{
+								"SheetName": "TABLE_MAPPING",
+								"TargetTable": "TABLE_MAPPING"
+							},
+							{
+								"SheetName": "COLUMN_MAPPING",
+								"TargetTable": "COLUMN_MAPPING"
+							}
+						]
+					}
+				},
+				"annotations": [],
+				"lastPublishTime": "2025-11-01T20:48:35Z"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/PL_02_LoadStage')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Delete Stage File",
+						"type": "Delete",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataset": {
+								"referenceName": "ds_stage_file",
+								"type": "DatasetReference",
+								"parameters": {
+									"ds_par_StageContainer": {
+										"value": "@pipeline().parameters.pl_par_StageContainer",
+										"type": "Expression"
+									},
+									"ds_par_StageFolder": {
+										"value": "@pipeline().parameters.pl_par_StageFolder",
+										"type": "Expression"
+									},
+									"ds_par_StageFile": "Test Value"
+								}
+							},
+							"enableLogging": false,
+							"storeSettings": {
+								"type": "AzureBlobFSReadSettings",
+								"recursive": true,
+								"wildcardFileName": {
+									"value": "@concat(pipeline().parameters.pl_par_StageFile,'*')",
+									"type": "Expression"
+								},
+								"enablePartitionDiscovery": false
+							}
+						}
+					},
+					{
+						"name": "Copy Data To Stage",
+						"type": "Copy",
+						"dependsOn": [
+							{
+								"activity": "Delete Stage File",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "AzureSqlSource",
+								"sqlReaderQuery": {
+									"value": "SELECT * FROM @{pipeline().parameters.pl_par_SourceSchema}.@{pipeline().parameters.pl_par_SourceTable}",
+									"type": "Expression"
+								},
+								"queryTimeout": "02:00:00",
+								"partitionOption": "None"
+							},
+							"sink": {
+								"type": "ParquetSink",
+								"storeSettings": {
+									"type": "AzureBlobFSWriteSettings"
+								},
+								"formatSettings": {
+									"type": "ParquetWriteSettings"
+								}
+							},
+							"enableStaging": false,
+							"translator": {
+								"type": "TabularTranslator",
+								"typeConversion": true,
+								"typeConversionSettings": {
+									"allowDataTruncation": true,
+									"treatBooleanAsNumber": false
+								}
+							}
+						},
+						"inputs": [
+							{
+								"referenceName": "ds_stage_source_devlopment_schema",
+								"type": "DatasetReference",
+								"parameters": {
+									"ds_par_SourceSchema": {
+										"value": "@pipeline().parameters.pl_par_SourceSchema",
+										"type": "Expression"
+									},
+									"ds_par_SourceTable": {
+										"value": "@pipeline().parameters.pl_par_SourceTable",
+										"type": "Expression"
+									}
+								}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "ds_stage_file",
+								"type": "DatasetReference",
+								"parameters": {
+									"ds_par_StageContainer": {
+										"value": "@pipeline().parameters.pl_par_StageContainer",
+										"type": "Expression"
+									},
+									"ds_par_StageFolder": {
+										"value": "@pipeline().parameters.pl_par_StageFolder",
+										"type": "Expression"
+									},
+									"ds_par_StageFile": {
+										"value": "@pipeline().parameters.pl_par_StageFile",
+										"type": "Expression"
+									}
+								}
+							}
+						]
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"parameters": {
+					"pl_par_SourceSchema": {
+						"type": "string"
+					},
+					"pl_par_SourceTable": {
+						"type": "string"
+					},
+					"pl_par_StageContainer": {
+						"type": "string"
+					},
+					"pl_par_StageFolder": {
+						"type": "string"
+					},
+					"pl_par_StageFile": {
+						"type": "string"
+					}
+				},
+				"folder": {
+					"name": "PROJECT 2"
+				},
+				"annotations": [],
+				"lastPublishTime": "2025-10-11T15:31:45Z"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/PL_02_Load_Stage')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Delete Stage File",
+						"type": "Delete",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.00:10:00",
+							"retry": 2,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataset": {
+								"referenceName": "ds_parquet",
+								"type": "DatasetReference",
+								"parameters": {
+									"ds_par_container": {
+										"value": "@pipeline().parameters.pl_par_StageContainer",
+										"type": "Expression"
+									},
+									"ds_par_folder": {
+										"value": "@pipeline().parameters.pl_par_StageFolder",
+										"type": "Expression"
+									},
+									"ds_par_file": "Default value"
+								}
+							},
+							"enableLogging": false,
+							"storeSettings": {
+								"type": "AzureBlobFSReadSettings",
+								"recursive": true,
+								"wildcardFileName": {
+									"value": "@concat(pipeline().parameters.pl_par_StageFile,'*')",
+									"type": "Expression"
+								},
+								"enablePartitionDiscovery": false
+							}
+						}
+					},
+					{
+						"name": "Copy To Stage Path",
+						"type": "Copy",
+						"dependsOn": [
+							{
+								"activity": "Delete Stage File",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "AzureSqlSource",
+								"sqlReaderQuery": {
+									"value": "SELECT * FROM @{pipeline().parameters.pl_par_SourceSchema}.@{pipeline().parameters.pl_par_SourceTable}",
+									"type": "Expression"
+								},
+								"queryTimeout": "02:00:00",
+								"partitionOption": "None"
+							},
+							"sink": {
+								"type": "ParquetSink",
+								"storeSettings": {
+									"type": "AzureBlobFSWriteSettings"
+								},
+								"formatSettings": {
+									"type": "ParquetWriteSettings"
+								}
+							},
+							"enableStaging": false,
+							"translator": {
+								"type": "TabularTranslator",
+								"typeConversion": true,
+								"typeConversionSettings": {
+									"allowDataTruncation": true,
+									"treatBooleanAsNumber": false
+								}
+							}
+						},
+						"inputs": [
+							{
+								"referenceName": "ds_dev_sql_db",
+								"type": "DatasetReference",
+								"parameters": {
+									"ds_par_SourceSchema": "Test Value",
+									"ds_par_SourceTable": "Test Value"
+								}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "ds_parquet",
+								"type": "DatasetReference",
+								"parameters": {
+									"ds_par_container": {
+										"value": "@pipeline().parameters.pl_par_StageContainer",
+										"type": "Expression"
+									},
+									"ds_par_folder": {
+										"value": "@pipeline().parameters.pl_par_StageFolder",
+										"type": "Expression"
+									},
+									"ds_par_file": {
+										"value": "@concat(pipeline().parameters.pl_par_StageFile,'_',formatDateTime(utcNow(),'yyyy-MM-dd HH:mm:ss'))",
+										"type": "Expression"
+									}
+								}
+							}
+						]
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"parameters": {
+					"pl_par_StageFile": {
+						"type": "string"
+					},
+					"pl_par_StageFolder": {
+						"type": "string"
+					},
+					"pl_par_StageContainer": {
+						"type": "string"
+					},
+					"pl_par_TargetTable": {
+						"type": "string"
+					},
+					"pl_par_TargetSchema": {
+						"type": "string"
+					},
+					"pl_par_SourceSchema": {
+						"type": "string"
+					},
+					"pl_par_SourceTable": {
+						"type": "string"
+					}
+				},
+				"folder": {
+					"name": "Project"
+				},
+				"annotations": [],
+				"lastPublishTime": "2025-10-11T14:55:10Z"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/PL_03_LoadDatabase')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Lookup Column Mapping",
+						"type": "Lookup",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "AzureSqlSource",
+								"sqlReaderStoredProcedureName": "[[METADATA].[GET_COLUMN_MAPPING]",
+								"storedProcedureParameters": {
+									"SourceTableName": {
+										"type": "String",
+										"value": {
+											"value": "@pipeline().parameters.pl_par_SourceTable",
+											"type": "Expression"
+										}
+									}
+								},
+								"queryTimeout": "02:00:00",
+								"partitionOption": "None"
+							},
+							"dataset": {
+								"referenceName": "ds_sql_oracle_db",
+								"type": "DatasetReference",
+								"parameters": {
+									"targetTable": "Default Value"
+								}
+							},
+							"firstRowOnly": false
+						}
+					},
+					{
+						"name": "Mapping Expression",
+						"type": "SetVariable",
+						"dependsOn": [
+							{
+								"activity": "Lookup Column Mapping",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"variableName": "pl_var_mapping_expr",
+							"value": {
+								"value": "@replace(replace(activity('Lookup Column Mapping').output.value[0].json_output,'\\\\/','/'),'\\\"','\"')",
+								"type": "Expression"
+							}
+						}
+					},
+					{
+						"name": "Copy Data To Database",
+						"type": "Copy",
+						"dependsOn": [
+							{
+								"activity": "Mapping Expression",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "ParquetSource",
+								"storeSettings": {
+									"type": "AzureBlobFSReadSettings",
+									"recursive": true,
+									"wildcardFolderPath": {
+										"value": "@pipeline().parameters.pl_par_StageFolder",
+										"type": "Expression"
+									},
+									"wildcardFileName": {
+										"value": "@concat(pipeline().parameters.pl_par_StageFile,'*')",
+										"type": "Expression"
+									},
+									"enablePartitionDiscovery": false
+								},
+								"formatSettings": {
+									"type": "ParquetReadSettings"
+								}
+							},
+							"sink": {
+								"type": "AzureSqlSink",
+								"writeBehavior": "insert",
+								"sqlWriterUseTableLock": false
+							},
+							"enableStaging": false,
+							"translator": {
+								"type": "TabularTranslator",
+								"typeConversion": true,
+								"typeConversionSettings": {
+									"allowDataTruncation": true,
+									"treatBooleanAsNumber": false
+								}
+							}
+						},
+						"inputs": [
+							{
+								"referenceName": "ds_parquet",
+								"type": "DatasetReference",
+								"parameters": {
+									"ds_par_container": {
+										"value": "@pipeline().parameters.pl_par_StageContainer",
+										"type": "Expression"
+									},
+									"ds_par_folder": {
+										"value": "@pipeline().parameters.pl_par_StageFolder",
+										"type": "Expression"
+									},
+									"ds_par_file": "Defult Value"
+								}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "new_db_sql_server",
+								"type": "DatasetReference",
+								"parameters": {
+									"ds_par_TargetSchema": {
+										"value": "@pipeline().parameters.pl_par_TargetSchema",
+										"type": "Expression"
+									},
+									"ds_par_TargetTable": {
+										"value": "@pipeline().parameters.pl_par_TargetTable",
+										"type": "Expression"
+									}
+								}
+							}
+						]
+					},
+					{
+						"name": "Load Audit Logs",
+						"type": "SqlServerStoredProcedure",
+						"dependsOn": [
+							{
+								"activity": "Copy Data To Database",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"storedProcedureName": "[[METADATA].[SET_TABLE_LOAD_STATUS]",
+							"storedProcedureParameters": {
+								"BatchSize": {
+									"value": null,
+									"type": "Int32"
+								},
+								"DuplicateKeys": {
+									"value": null,
+									"type": "Int32"
+								},
+								"SourceRows": {
+									"value": {
+										"value": "@activity('Copy Data To Database').output.rowsRead",
+										"type": "Expression"
+									},
+									"type": "Int32"
+								},
+								"SourceTable": {
+									"value": {
+										"value": "@pipeline().parameters.pl_par_SourceTable",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"TargetRows": {
+									"value": {
+										"value": "@activity('Copy Data To Database').output.rowsCopied",
+										"type": "Expression"
+									},
+									"type": "Int32"
+								}
+							}
+						},
+						"linkedServiceName": {
+							"referenceName": "ls_oraclecmsdb",
+							"type": "LinkedServiceReference"
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"parameters": {
+					"pl_par_SourceTable": {
+						"type": "string"
+					},
+					"pl_par_StageContainer": {
+						"type": "string"
+					},
+					"pl_par_StageFolder": {
+						"type": "string"
+					},
+					"pl_par_StageFile": {
+						"type": "string"
+					},
+					"pl_par_TargetSchema": {
+						"type": "string"
+					},
+					"pl_par_TargetTable": {
+						"type": "string"
+					}
+				},
+				"variables": {
+					"pl_var_mapping_expr": {
+						"type": "String"
+					}
+				},
+				"folder": {
+					"name": "PROJECT 2"
+				},
+				"annotations": [],
+				"lastPublishTime": "2025-10-12T15:34:02Z"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/PL_03_Load_Database')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Lookup Column Mapping",
+						"type": "Lookup",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "AzureSqlSource",
+								"sqlReaderStoredProcedureName": "[[configuration].[GET_COLUMN_MAPPING]",
+								"storedProcedureParameters": {
+									"SourceTableName": {
+										"type": "String",
+										"value": {
+											"value": "@pipeline().parameters.pl_par_SourceTable",
+											"type": "Expression"
+										}
+									}
+								},
+								"queryTimeout": "02:00:00",
+								"partitionOption": "None"
+							},
+							"dataset": {
+								"referenceName": "ds_azure_sql_db",
+								"type": "DatasetReference",
+								"parameters": {
+									"targetTable": "Default Value"
+								}
+							},
+							"firstRowOnly": false
+						}
+					},
+					{
+						"name": "set mapping string",
+						"type": "SetVariable",
+						"dependsOn": [
+							{
+								"activity": "Lookup Column Mapping",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"variableName": "pl_var_mapping_string",
+							"value": {
+								"value": "@replace(replace(activity('Lookup Column Mapping').output.value[0].json_output,'\\\\/','/'),'\\\"','\"')",
+								"type": "Expression"
+							}
+						}
+					},
+					{
+						"name": "Copy Data To Database",
+						"type": "Copy",
+						"dependsOn": [
+							{
+								"activity": "set mapping string",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "ParquetSource",
+								"storeSettings": {
+									"type": "AzureBlobFSReadSettings",
+									"recursive": true,
+									"wildcardFolderPath": {
+										"value": "@pipeline().parameters.pl_par_StageFolder",
+										"type": "Expression"
+									},
+									"wildcardFileName": {
+										"value": "@concat(pipeline().parameters.pl_par_StageFile,'*')",
+										"type": "Expression"
+									},
+									"enablePartitionDiscovery": false
+								},
+								"formatSettings": {
+									"type": "ParquetReadSettings"
+								}
+							},
+							"sink": {
+								"type": "AzureSqlSink",
+								"writeBehavior": "insert",
+								"sqlWriterUseTableLock": false
+							},
+							"enableStaging": false,
+							"translator": {
+								"type": "TabularTranslator",
+								"typeConversion": true,
+								"typeConversionSettings": {
+									"allowDataTruncation": true,
+									"treatBooleanAsNumber": false
+								}
+							}
+						},
+						"inputs": [
+							{
+								"referenceName": "ds_parquet",
+								"type": "DatasetReference",
+								"parameters": {
+									"ds_par_container": {
+										"value": "@pipeline().parameters.pl_par_StageContainer",
+										"type": "Expression"
+									},
+									"ds_par_folder": {
+										"value": "@pipeline().parameters.pl_par_StageFolder",
+										"type": "Expression"
+									},
+									"ds_par_file": "default"
+								}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "new_db_sql_server",
+								"type": "DatasetReference",
+								"parameters": {
+									"ds_par_TargetSchema": {
+										"value": "@pipeline().parameters.pl_par_TargetSchema",
+										"type": "Expression"
+									},
+									"ds_par_TargetTable": {
+										"value": "@pipeline().parameters.pl_par_TargetTable",
+										"type": "Expression"
+									}
+								}
+							}
+						]
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"parameters": {
+					"pl_par_SourceTable": {
+						"type": "string"
+					},
+					"pl_par_StageFolder": {
+						"type": "string"
+					},
+					"pl_par_StageFile": {
+						"type": "string"
+					},
+					"pl_par_StageContainer": {
+						"type": "string"
+					},
+					"pl_par_TargetTable": {
+						"type": "string"
+					},
+					"pl_par_TargetSchema": {
+						"type": "string"
+					}
+				},
+				"variables": {
+					"pl_var_mapping_string": {
+						"type": "String"
+					}
+				},
+				"folder": {
+					"name": "Project"
+				},
+				"annotations": [],
+				"lastPublishTime": "2025-10-12T03:42:18Z"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/PL_01_GetTableList')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Lookup Table Mapping",
+						"type": "Lookup",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "AzureSqlSource",
+								"sqlReaderStoredProcedureName": "[[METADATA].[GET_TABLE_MAPPING]",
+								"queryTimeout": "02:00:00",
+								"partitionOption": "None"
+							},
+							"dataset": {
+								"referenceName": "ds_sql_oracle_db",
+								"type": "DatasetReference",
+								"parameters": {
+									"targetTable": "Test Value"
+								}
+							},
+							"firstRowOnly": false
+						}
+					},
+					{
+						"name": "Iterate Table List",
+						"type": "ForEach",
+						"dependsOn": [
+							{
+								"activity": "Lookup Table Mapping",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"userProperties": [],
+						"typeProperties": {
+							"items": {
+								"value": "@activity('Lookup Table Mapping').output.value",
+								"type": "Expression"
+							},
+							"isSequential": true,
+							"activities": [
+								{
+									"name": "Execute LoadStage Pipeline",
+									"type": "ExecutePipeline",
+									"dependsOn": [],
+									"policy": {
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"pipeline": {
+											"referenceName": "PL_02_LoadStage",
+											"type": "PipelineReference"
+										},
+										"waitOnCompletion": true,
+										"parameters": {
+											"pl_par_SourceSchema": {
+												"value": "@item().SOURCE_SCHEMA",
+												"type": "Expression"
+											},
+											"pl_par_SourceTable": {
+												"value": "@item().SOURCE_TABLE",
+												"type": "Expression"
+											},
+											"pl_par_StageContainer": {
+												"value": "@item().STAGE_CONTAINER",
+												"type": "Expression"
+											},
+											"pl_par_StageFolder": {
+												"value": "@item().STAGE_FOLDER_PATH",
+												"type": "Expression"
+											},
+											"pl_par_StageFile": {
+												"value": "@item().STAGE_FILE_NAME",
+												"type": "Expression"
+											}
+										}
+									}
+								},
+								{
+									"name": "Execute LoadDatabase",
+									"type": "ExecutePipeline",
+									"dependsOn": [
+										{
+											"activity": "Execute LoadStage Pipeline",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
+									"policy": {
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"pipeline": {
+											"referenceName": "PL_03_LoadDatabase",
+											"type": "PipelineReference"
+										},
+										"waitOnCompletion": true,
+										"parameters": {
+											"pl_par_SourceTable": {
+												"value": "@item().SOURCE_TABLE",
+												"type": "Expression"
+											},
+											"pl_par_StageContainer": {
+												"value": "@item().STAGE_CONTAINER",
+												"type": "Expression"
+											},
+											"pl_par_StageFolder": {
+												"value": "@item().STAGE_FOLDER_PATH",
+												"type": "Expression"
+											},
+											"pl_par_StageFile": {
+												"value": "@item().STAGE_FILE_NAME",
+												"type": "Expression"
+											},
+											"pl_par_TargetSchema": {
+												"value": "@item().TARGET_SCHEMA",
+												"type": "Expression"
+											},
+											"pl_par_TargetTable": {
+												"value": "@item().TARGET_TABLE",
+												"type": "Expression"
+											}
+										}
+									}
+								}
+							]
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"folder": {
+					"name": "PROJECT 2"
+				},
+				"annotations": [],
+				"lastPublishTime": "2025-10-12T15:34:03Z"
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/pipelines/PL_02_LoadStage')]",
+				"[concat(variables('factoryId'), '/pipelines/PL_03_LoadDatabase')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/PL_01_Get_TableList')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Lookup Table Mapping",
+						"type": "Lookup",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "AzureSqlSource",
+								"sqlReaderStoredProcedureName": "[[METADATA].[GET_TABLE_MAPPING]",
+								"queryTimeout": "02:00:00",
+								"partitionOption": "None"
+							},
+							"dataset": {
+								"referenceName": "ds_lookup_table_mapping_sp",
+								"type": "DatasetReference",
+								"parameters": {}
+							},
+							"firstRowOnly": false
+						}
+					},
+					{
+						"name": "Iterate TableList",
+						"type": "ForEach",
+						"dependsOn": [
+							{
+								"activity": "Lookup Table Mapping",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"userProperties": [],
+						"typeProperties": {
+							"items": {
+								"value": "@activity('Lookup Table Mapping').output.value",
+								"type": "Expression"
+							},
+							"isSequential": true,
+							"activities": [
+								{
+									"name": "Execute Load Stage Data",
+									"type": "ExecutePipeline",
+									"state": "Inactive",
+									"onInactiveMarkAs": "Succeeded",
+									"dependsOn": [],
+									"policy": {
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"pipeline": {
+											"referenceName": "PL_02_Load_Stage",
+											"type": "PipelineReference"
+										},
+										"waitOnCompletion": true,
+										"parameters": {
+											"pl_par_StageFile": {
+												"value": "@item().STAGE_FILE_NAME",
+												"type": "Expression"
+											},
+											"pl_par_StageFolder": {
+												"value": "@item().STAGE_FOLDER_PATH",
+												"type": "Expression"
+											},
+											"pl_par_StageContainer": {
+												"value": "@item().STAGE_CONTAINER",
+												"type": "Expression"
+											},
+											"pl_par_TargetTable": {
+												"value": "@item().TARGET_SCHEMA",
+												"type": "Expression"
+											},
+											"pl_par_TargetSchema": {
+												"value": "@item().TARGET_TABLE",
+												"type": "Expression"
+											},
+											"pl_par_SourceSchema": {
+												"value": "@item().SOURCE_SCHEMA",
+												"type": "Expression"
+											},
+											"pl_par_SourceTable": {
+												"value": "@item().SOURCE_TABLE",
+												"type": "Expression"
+											}
+										}
+									}
+								},
+								{
+									"name": "Execute Load Database Data",
+									"type": "ExecutePipeline",
+									"dependsOn": [
+										{
+											"activity": "Execute Load Stage Data",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
+									"policy": {
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"pipeline": {
+											"referenceName": "PL_03_Load_Database",
+											"type": "PipelineReference"
+										},
+										"waitOnCompletion": true,
+										"parameters": {
+											"pl_par_SourceTable": {
+												"value": "@item().SOURCE_TABLE",
+												"type": "Expression"
+											},
+											"pl_par_StageFolder": {
+												"value": "@item().STAGE_FOLDER_PATH",
+												"type": "Expression"
+											},
+											"pl_par_StageFile": {
+												"value": "@item().STAGE_FILE_NAME",
+												"type": "Expression"
+											},
+											"pl_par_StageContainer": {
+												"value": "@item().STAGE_CONTAINER",
+												"type": "Expression"
+											},
+											"pl_par_TargetTable": {
+												"value": "@item().TARGET_TABLE",
+												"type": "Expression"
+											},
+											"pl_par_TargetSchema": {
+												"value": "@item().TARGET_SCHEMA",
+												"type": "Expression"
+											}
+										}
+									}
+								}
+							]
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"folder": {
+					"name": "Project"
+				},
+				"annotations": [],
+				"lastPublishTime": "2025-10-12T03:42:18Z"
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/pipelines/PL_02_Load_Stage')]",
+				"[concat(variables('factoryId'), '/pipelines/PL_03_Load_Database')]"
+			]
+		}
+	]
+}

@@ -1,0 +1,87 @@
+{
+	"$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"factoryName": {
+			"value": "madaraUchiha"
+		},
+		"AzureDataLakeStoragelinkedservice_accountKey": {
+			"value": ""
+		},
+		"AzureSqlDatabaseSink_password": {
+			"value": ""
+		},
+		"LS_SINK_AZURESQL_password": {
+			"value": ""
+		},
+		"LS_SOURCE_ADLS_accountKey": {
+			"value": ""
+		},
+		"adb_ls_accessToken": {
+			"value": ""
+		},
+		"ls_adls_accountKey": {
+			"value": ""
+		},
+		"ls_oraclecmsdb_password": {
+			"value": ""
+		},
+		"sql_server_conn_password": {
+			"value": ""
+		},
+		"AzureDataLakeStoragelinkedservice_properties_typeProperties_url": {
+			"value": "https://madarastorage.dfs.core.windows.net/"
+		},
+		"AzureSqlDatabaseSink_properties_typeProperties_server": {
+			"value": "madara.database.windows.net"
+		},
+		"AzureSqlDatabaseSink_properties_typeProperties_database": {
+			"value": "madara"
+		},
+		"AzureSqlDatabaseSink_properties_typeProperties_userName": {
+			"value": "madara"
+		},
+		"LS_SINK_AZURESQL_properties_typeProperties_server": {
+			"value": "avdsqldbserver.database.windows.net"
+		},
+		"LS_SINK_AZURESQL_properties_typeProperties_database": {
+			"value": "my_db"
+		},
+		"LS_SINK_AZURESQL_properties_typeProperties_userName": {
+			"value": "avd"
+		},
+		"LS_SOURCE_ADLS_properties_typeProperties_url": {
+			"value": "https://sasourceadls102.dfs.core.windows.net/"
+		},
+		"adb_ls_properties_typeProperties_existingClusterId": {
+			"value": "1007-074352-3sihhxwx"
+		},
+		"ls_adls_properties_typeProperties_url": {
+			"value": "https://peoject9001stg.dfs.core.windows.net/"
+		},
+		"ls_oraclecmsdb_properties_typeProperties_server": {
+			"value": "testdemo90010.database.windows.net"
+		},
+		"ls_oraclecmsdb_properties_typeProperties_database": {
+			"value": "testdemo9001"
+		},
+		"ls_oraclecmsdb_properties_typeProperties_userName": {
+			"value": "user"
+		},
+		"sql_server_conn_properties_typeProperties_server": {
+			"value": "sqlserverdb9001.database.windows.net"
+		},
+		"sql_server_conn_properties_typeProperties_database": {
+			"value": "sqlserverdb9001"
+		},
+		"sql_server_conn_properties_typeProperties_userName": {
+			"value": "user"
+		},
+		"containerUri": {
+			"value": ""
+		},
+		"containerSasToken": {
+			"value": ""
+		}
+	}
+}
