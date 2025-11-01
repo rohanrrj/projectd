@@ -1,0 +1,105 @@
+{
+	"name": "PL_00_METADATA",
+	"properties": {
+		"activities": [
+			{
+				"name": "itrate_sheetName",
+				"type": "ForEach",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@variables('var_sheet_name')",
+						"type": "Expression"
+					},
+					"isSequential": true,
+					"activities": [
+						{
+							"name": "Copy_metadataToTables",
+							"type": "Copy",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "ExcelSource",
+									"storeSettings": {
+										"type": "AzureBlobFSReadSettings",
+										"recursive": true,
+										"enablePartitionDiscovery": false
+									}
+								},
+								"sink": {
+									"type": "AzureSqlSink",
+									"preCopyScript": {
+										"value": "DELETE FROM [METADATA].@{item().TargetTable}",
+										"type": "Expression"
+									},
+									"writeBehavior": "insert",
+									"sqlWriterUseTableLock": false
+								},
+								"enableStaging": false,
+								"translator": {
+									"type": "TabularTranslator",
+									"typeConversion": true,
+									"typeConversionSettings": {
+										"allowDataTruncation": true,
+										"treatBooleanAsNumber": false
+									}
+								}
+							},
+							"inputs": [
+								{
+									"referenceName": "ds_metadata_excel",
+									"type": "DatasetReference",
+									"parameters": {
+										"sheetName": {
+											"value": "@item().SheetName",
+											"type": "Expression"
+										}
+									}
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "AzureSqlTable1",
+									"type": "DatasetReference",
+									"parameters": {
+										"targetTable": {
+											"value": "@item().TargetTable",
+											"type": "Expression"
+										}
+									}
+								}
+							]
+						}
+					]
+				}
+			}
+		],
+		"variables": {
+			"var_sheet_name": {
+				"type": "Array",
+				"defaultValue": [
+					{
+						"SheetName": "TABLE_MAPPING",
+						"TargetTable": "TABLE_MAPPING"
+					},
+					{
+						"SheetName": "COLUMN_MAPPING",
+						"TargetTable": "COLUMN_MAPPING"
+					}
+				]
+			}
+		},
+		"annotations": [],
+		"lastPublishTime": "2025-11-01T20:48:35Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

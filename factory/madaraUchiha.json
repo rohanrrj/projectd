@@ -1,0 +1,9 @@
+{
+	"name": "madaraUchiha",
+	"location": "centralus",
+	"identity": {
+		"type": "SystemAssigned",
+		"principalId": "0781fa7b-08cf-4ee0-a99c-c8f7fa5fbe79",
+		"tenantId": "9ecd9b66-ff0e-42c8-ba1b-509cb5cbd441"
+	}
+}

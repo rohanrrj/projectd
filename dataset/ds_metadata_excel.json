@@ -2,16 +2,13 @@
 	"name": "ds_metadata_excel",
 	"properties": {
 		"linkedServiceName": {
-			"referenceName": "ls_adls",
+			"referenceName": "AzureDataLakeStoragelinkedservice",
 			"type": "LinkedServiceReference"
 		},
 		"parameters": {
 			"sheetName": {
 				"type": "string"
 			}
-		},
-		"folder": {
-			"name": "CMS"
 		},
 		"annotations": [],
 		"type": "Excel",
@@ -23,7 +20,7 @@
 			"location": {
 				"type": "AzureBlobFSLocation",
 				"fileName": "metadata_mapping.xlsx",
-				"fileSystem": "metastore"
+				"fileSystem": "metadata"
 			},
 			"firstRowAsHeader": true
 		},
