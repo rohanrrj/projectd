@@ -2,7 +2,7 @@
 	"name": "ds_metadata_excel",
 	"properties": {
 		"linkedServiceName": {
-			"referenceName": "AzureDataLakeStoragelinkedservice",
+			"referenceName": "ls_adls",
 			"type": "LinkedServiceReference"
 		},
 		"parameters": {
